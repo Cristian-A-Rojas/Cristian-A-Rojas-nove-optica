@@ -1,15 +1,12 @@
 <?php
-/**
- * NOVE ÓPTICA – Zero Trust Build V13.2
- * Página principal con productos destacados
- * Ultra-Stable AppServ Edition
- */
+
 
 declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 require_once __DIR__ . '/includes/session.php';
+require_once __DIR__ . '/includes/log.php';
 require_once __DIR__ . '/includes/security.php';
 require_once __DIR__ . '/includes/csrf.php';
 require_once __DIR__ . '/config/db.php';
@@ -72,8 +69,8 @@ if ($resultado = mysqli_query($conexion, $sql)) {
   </div>
 </section>
 
-
 <?php include __DIR__ . '/includes/footer.php'; ?>
 <script src="/nove_optica/js/carrito.js"></script>
 </body>
 </html>
+
