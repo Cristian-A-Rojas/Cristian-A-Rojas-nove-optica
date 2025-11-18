@@ -37,13 +37,17 @@ $headers = [
     "Cross-Origin-Opener-Policy: same-origin",
     "Cross-Origin-Embedder-Policy: require-corp",
     "Cross-Origin-Resource-Policy: same-origin",
-    "Content-Security-Policy: default-src 'self'; " .
-    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " .
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; " .
-    "img-src 'self' data: https://cdn.jsdelivr.net; " .
-    "font-src 'self' https://fonts.gstatic.com; " .
-    "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;"
-
+    "Content-Security-Policy:
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+        img-src 'self' data: https://cdn.jsdelivr.net;
+        font-src 'self' https://fonts.gstatic.com;
+        frame-ancestors 'none';
+        object-src 'none';
+        base-uri 'self';
+        form-action 'self';
+        upgrade-insecure-requests;"
 ];
 foreach ($headers as $h) header($h);
 
@@ -61,24 +65,6 @@ if (file_exists($log_main) && filesize($log_main) > 1048576) {
 }
 ini_set('error_log', $log_main);
 
-// ****************************** PROTECCIÓN BRUTE-FORCE ******************************
-if (!isset($_SESSION['failed_attempts'])) $_SESSION['failed_attempts'] = 0;
-if (!isset($_SESSION['lockout_until'])) $_SESSION['lockout_until'] = 0;
-
-function is_locked() {
-    return time() < ($_SESSION['lockout_until'] ?? 0);
-}
-function register_fail() {
-    $_SESSION['failed_attempts']++;
-    if ($_SESSION['failed_attempts'] >= 5) {
-        $_SESSION['lockout_until'] = time() + 300; // 5 minutos
-        $_SESSION['failed_attempts'] = 0;
-    }
-}
-function reset_fails() {
-    $_SESSION['failed_attempts'] = 0;
-    $_SESSION['lockout_until'] = 0;
-}
 
 // ****************************** CONEXIÓN A BASE DE DATOS ******************************
 function conectar_bd() {
@@ -133,4 +119,3 @@ function cerrar_bd($conexion) {
     }
 }
 ?>
-
