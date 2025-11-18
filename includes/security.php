@@ -77,12 +77,12 @@ if (function_exists('is_locked') && is_locked()) {
    🔐 Control de rutas privadas
 */
 
-// Admin
+// Rutas de administración
 if (strpos($_SERVER['PHP_SELF'], '/admin/') !== false) {
     enforce_admin();
 }
 
-// Cliente autenticado
+// Rutas privadas de cliente
 $privadas = [
     '/carrito/',
     '/checkout/',
@@ -90,4 +90,18 @@ $privadas = [
 ];
 
 foreach ($privadas as $r) {
-    if (strpos($_SERVER['PHP_SELF'],_]()_
+    if (strpos($_SERVER['PHP_SELF'], $r) !== false) {
+        require_login();
+    }
+}
+
+/*
+   🔍 LOG DE ACCESO
+*/
+registrar_log(
+    'acceso_ok',
+    'Ruta ' . ($_SERVER['PHP_SELF'] ?? '') . ' | Usuario ' . ($_SESSION['usuario'] ?? 'publico'),
+    'DEBUG'
+);
+
+?>
