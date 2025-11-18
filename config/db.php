@@ -1,5 +1,7 @@
 <?php
-// ****************************** CONEXIÓN A BASE DE DATOS ******************************
+// ===============================
+//  CONEXIÓN A BASE DE DATOS
+// ===============================
 function conectar_bd() {
 
     $host = getenv('MYSQL_HOST');
