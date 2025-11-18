@@ -37,17 +37,13 @@ $headers = [
     "Cross-Origin-Opener-Policy: same-origin",
     "Cross-Origin-Embedder-Policy: require-corp",
     "Cross-Origin-Resource-Policy: same-origin",
-    "Content-Security-Policy:
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
-        img-src 'self' data: https://cdn.jsdelivr.net;
-        font-src 'self' https://fonts.gstatic.com;
-        frame-ancestors 'none';
-        object-src 'none';
-        base-uri 'self';
-        form-action 'self';
-        upgrade-insecure-requests;"
+    "Content-Security-Policy: default-src 'self'; " .
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " .
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; " .
+    "img-src 'self' data: https://cdn.jsdelivr.net; " .
+    "font-src 'self' https://fonts.gstatic.com; " .
+    "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;"
+
 ];
 foreach ($headers as $h) header($h);
 
@@ -137,3 +133,4 @@ function cerrar_bd($conexion) {
     }
 }
 ?>
+
