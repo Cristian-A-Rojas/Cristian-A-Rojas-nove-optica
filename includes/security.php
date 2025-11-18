@@ -89,10 +89,8 @@ $privadas = [
     '/perfil.php'
 ];
 
-foreach ($privadas as $r) {
-    if (strpos($_SERVER['PHP_SELF'], $r) !== false) {
-        require_login();
-    }
+foreach ($privadas as $r) {if (strpos($_SERVER['PHP_SELF'], $r) !== false) {require_login();
+}
 }
 
 /*
@@ -105,4 +103,5 @@ registrar_log(
 );
 
 ?>
+
 
