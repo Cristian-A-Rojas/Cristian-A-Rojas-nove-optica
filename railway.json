@@ -1,0 +1,8 @@
+{
+  "build": {
+    "builder": "php"
+  },
+  "deploy": {
+    "startCommand": "./start.sh"
+  }
+}
