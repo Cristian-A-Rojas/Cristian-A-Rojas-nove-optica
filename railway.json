@@ -1,8 +1,7 @@
 {
-  "build": {
-    "builder": "php"
+  "nixpacks": {
+    "providers": ["php"]
   },
-  "deploy": {
-    "startCommand": "./start.sh"
-  }
+  "start": "./start.sh"
 }
+
