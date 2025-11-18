@@ -1,92 +1,89 @@
 <?php
-require_once __DIR__ . '/../config/db.php';
-
-// // parámetros de sesión
+// ===============================
+//  SESIÓN SEGURA
+// ===============================
 if (session_status() === PHP_SESSION_NONE) {
-    session_name('NOVESESSID');
     session_start([
-        'cookie_httponly'        => true,
-        'cookie_secure'          => !empty($_SERVER['HTTPS']),
-        'cookie_samesite'        => 'Strict',
-        'use_strict_mode'        => true,
-        'use_only_cookies'       => true,
-        'sid_length'             => 64,
-        'sid_bits_per_character' => 6,
-        'gc_maxlifetime'         => 1800 // vida sesión
+        'cookie_httponly' => true,
+        'cookie_secure'   => !empty($_SERVER['HTTPS']),
+        'cookie_samesite' => 'Strict',
+        'use_strict_mode' => true,
+        'use_only_cookies'=> true
     ]);
 }
 
-// // generar fingerprint reforzado
-function generar_fingerprint() {
-    $ip  = $_SERVER['REMOTE_ADDR'] ?? '';
-    $ua  = $_SERVER['HTTP_USER_AGENT'] ?? '';
-    $salt = 'NOVEOPTICA_SAAS_2025'; // salt fija segura
-    return hash_hmac('sha256', $ip . $ua, $salt);
-}
-
-$fingerprint_actual = generar_fingerprint();
-
-// // validar fingerprint al crear
+// ===============================
+//  FINGERPRINT ZERO-TRUST
+// ===============================
+$fingerprint = hash('sha256', ($_SERVER['HTTP_USER_AGENT'] ?? '') . ($_SERVER['REMOTE_ADDR'] ?? ''));
 if (!isset($_SESSION['fingerprint'])) {
-    $_SESSION['fingerprint'] = $fingerprint_actual;
-}
-
-// // proteger contra secuestro
-if (!hash_equals($_SESSION['fingerprint'], $fingerprint_actual)) {
+    $_SESSION['fingerprint'] = $fingerprint;
+} elseif ($_SESSION['fingerprint'] !== $fingerprint) {
     session_unset();
     session_destroy();
-    die('Sesión no válida.');
+    die("Sesión no válida.");
 }
 
-// // expiración por inactividad
-$timeout = 900; // 15 min
-if (isset($_SESSION['ultimo_uso']) && (time() - $_SESSION['ultimo_uso']) > $timeout) {
-    session_unset();
-    session_destroy();
-    die('Sesión expirada.');
-}
-$_SESSION['ultimo_uso'] = time();
+// ===============================
+//  CABECERAS DE SEGURIDAD
+// ===============================
+header("X-Frame-Options: DENY");
+header("X-Content-Type-Options: nosniff");
+header("Referrer-Policy: strict-origin");
+header("Permissions-Policy: camera=(), microphone=(), geolocation=(), usb=()");
+header("Cross-Origin-Opener-Policy: same-origin");
+header("Cross-Origin-Embedder-Policy: require-corp");
+header("Cross-Origin-Resource-Policy: same-origin");
 
-// // rotación de ID
-if (!isset($_SESSION['creado'])) {
-    $_SESSION['creado'] = time();
-} elseif (time() - $_SESSION['creado'] > 600) {
-    session_regenerate_id(true);
-    $_SESSION['creado'] = time();
-}
+header("Content-Security-Policy: default-src 'self';
+    script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+    img-src 'self' data: https://cdn.jsdelivr.net;
+    font-src 'self' https://fonts.gstatic.com;
+    object-src 'none';
+    frame-ancestors 'none';
+    form-action 'self';
+    base-uri 'self';
+    upgrade-insecure-requests");
 
-// // bloqueo temporal
+// ===============================
+//  BRUTE-FORCE PROTECTION
+// ===============================
+if (!isset($_SESSION['failed_attempts'])) $_SESSION['failed_attempts'] = 0;
 if (!isset($_SESSION['lockout_until'])) $_SESSION['lockout_until'] = 0;
-function bloquear_usuario_temporalmente($segundos = 300) {
-    $_SESSION['lockout_until'] = time() + $segundos;
-}
+
 function is_locked() {
-    return (time() < ($_SESSION['lockout_until'] ?? 0));
-}
-if (is_locked()) {
-    die('Cuenta bloqueada temporalmente.');
+    return time() < ($_SESSION['lockout_until'] ?? 0);
 }
 
-// // sanitización global
-if (!function_exists('limpiar')) {
-    function limpiar($v) { return htmlspecialchars(trim($v), ENT_QUOTES, 'UTF-8'); }
-}
-foreach ($_POST as $k => $v) $_POST[$k] = limpiar($v);
-foreach ($_GET as $k => $v)  $_GET[$k]  = limpiar($v);
-
-// // sesión activa
-function sesion_activa() {
-    return !empty($_SESSION['usuario_id']);
-}
-
-// // cerrar sesión
-function cerrar_sesion_segura() {
-    $_SESSION = [];
-    if (ini_get('session.use_cookies')) {
-        setcookie(session_name(), '', time() - 42000, '/');
+function register_fail() {
+    $_SESSION['failed_attempts']++;
+    if ($_SESSION['failed_attempts'] >= 5) {
+        $_SESSION['lockout_until'] = time() + 300;
+        $_SESSION['failed_attempts'] = 0;
     }
-    session_destroy();
-    header('Location: /nove_optica/auth/login.php');
-    exit;
+}
+
+function reset_fails() {
+    $_SESSION['failed_attempts'] = 0;
+    $_SESSION['lockout_until'] = 0;
+}
+
+// ===============================
+//  CSRF PROTECTION
+// ===============================
+function generar_token_csrf() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    $_SESSION['csrf_hmac'] = hash_hmac('sha256', $_SESSION['csrf_token'], session_id());
+    return $_SESSION['csrf_token'];
+}
+
+function verificar_token_csrf($token) {
+    if (!isset($_SESSION['csrf_token'], $_SESSION['csrf_hmac'])) return false;
+    $hmac = hash_hmac('sha256', $_SESSION['csrf_token'], session_id());
+    return hash_equals($_SESSION['csrf_token'], $token)
+        && hash_equals($_SESSION['csrf_hmac'], $hmac);
 }
 ?>
