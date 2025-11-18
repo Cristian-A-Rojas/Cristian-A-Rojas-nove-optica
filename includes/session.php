@@ -35,16 +35,8 @@ header("Cross-Origin-Opener-Policy: same-origin");
 header("Cross-Origin-Embedder-Policy: require-corp");
 header("Cross-Origin-Resource-Policy: same-origin");
 
-header("Content-Security-Policy: default-src 'self';
-    script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
-    img-src 'self' data: https://cdn.jsdelivr.net;
-    font-src 'self' https://fonts.gstatic.com;
-    object-src 'none';
-    frame-ancestors 'none';
-    form-action 'self';
-    base-uri 'self';
-    upgrade-insecure-requests");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data: https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; object-src 'none'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; upgrade-insecure-requests");
+
 
 // ===============================
 //  BRUTE-FORCE PROTECTION
@@ -87,3 +79,4 @@ function verificar_token_csrf($token) {
         && hash_equals($_SESSION['csrf_hmac'], $hmac);
 }
 ?>
+
